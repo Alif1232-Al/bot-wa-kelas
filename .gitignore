@@ -1,0 +1,16 @@
+# dependency
+node_modules/
+
+# environment
+.env
+
+# database
+tasks.db
+
+# whatsapp session
+session/
+auth/
+auth_info_baileys/
+
+# logs
+*.log
