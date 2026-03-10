@@ -9,6 +9,7 @@ DisconnectReason
 
 const P = require("pino")
 const qrcode = require("qrcode-terminal")
+const QRCode = require("qrcode") // TAMBAHAN QR LINK
 
 const commandHandler = require("./handlers/commandHandler")
 
@@ -19,12 +20,12 @@ const reminder = require("./scheduler/reminder")
 const askAI = require("./ai/ai")
 
 // ===============================
-// MEMORY CHAT (BIAR AI IKUT TOPIK)
+// MEMORY CHAT
 // ===============================
 const chatMemory = {}
 
 // ===============================
-// MEMORY MEMBER (BIAR AI KENAL)
+// MEMORY MEMBER
 // ===============================
 const groupMembers = {}
 
@@ -54,8 +55,18 @@ sock.ev.on("connection.update", (update)=>{
 const { connection, lastDisconnect, qr } = update
 
 if(qr){
+
 console.log("📱 Scan QR ini:")
+
+// QR kecil di terminal
 qrcode.generate(qr,{ small:true })
+
+// QR link gambar
+QRCode.toDataURL(qr, (err, url) => {
+console.log("🔗 Buka QR ini di browser:")
+console.log(url)
+})
+
 }
 
 if(connection === "open"){
@@ -97,7 +108,6 @@ if(msg.key.fromMe) return
 
 const from = msg.key.remoteJid
 
-// ambil isi pesan
 const text =
 msg.message?.conversation ||
 msg.message?.extendedTextMessage?.text ||
@@ -161,9 +171,6 @@ text:"🤖 AI sedang berpikir..."
 await new Promise(r => setTimeout(r,1000))
 
 
-// ===============================
-// AMBIL NAMA USER
-// ===============================
 let sender = msg.key.participant || msg.key.remoteJid
 
 let userName =
@@ -171,9 +178,6 @@ msg.pushName ||
 sender.split("@")[0]
 
 
-// ===============================
-// GROUP INFO
-// ===============================
 let groupName = null
 let membersList = ""
 let adminsList = ""
@@ -204,25 +208,16 @@ console.log("Group metadata error:",e)
 }
 
 
-// ===============================
-// HISTORY CHAT UNTUK AI
-// ===============================
 const history = chatMemory[from]
 .map(m => `${m.user}: ${m.message}`)
 .join("\n")
 
 
-// ===============================
-// LIST NAMA MEMBER UNTUK AI
-// ===============================
 const membersNames = groupMembers[from]
 ? Object.values(groupMembers[from]).join(", ")
 : ""
 
 
-// ===============================
-// CONTEXT KE AI
-// ===============================
 const context = `
 Percakapan terakhir di grup:
 
